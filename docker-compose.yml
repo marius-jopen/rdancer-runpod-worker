@@ -1,9 +1,9 @@
-# version: '3.7'
+version: '0.1.0'
 
 services:
   mj-comfyui-worker:
+    image: mariusjopen/runpod-worker-comfyui:0.1.0
     platform: linux/amd64
-    # image: mj/runpod-worker-comfyui:0.0.39rc1
     build:
       context: .
       args:
@@ -21,8 +21,8 @@ services:
       - "22:22"        # SSH port
 
   mj-deforum-worker:
+    image: mariusjopen/runpod-worker-deforum:0.1.0
     platform: linux/amd64
-    # image: mj/runpod-worker-deforum:0.0.40rc1
     build:
       context: .
       args:
@@ -40,9 +40,8 @@ services:
     restart: always
 
   mj-a1111-worker:
+    image: mariusjopen/runpod-worker-a1111:0.1.0
     platform: linux/amd64
-    # image: mj/runpod-worker-a1111:0.0.35rc0 # last known working version
-    # image: mj/runpod-worker-a1111:0.0.39rc0
     build:
       context: .
       args:
@@ -50,7 +49,6 @@ services:
         IMAGE_TYPE: a1111
     container_name: mj-a1111-worker
     environment:
-      # Note that we use the --deforum-api flag here, because we want to unify the check_server() method between the vanilla a1111 and deforum workers.
       - WEBUI_ARGS=--xformers --no-half-vae --api --deforum-api # This is required
       - WEBUI_VENV=/workspace/environments/python/webui
       - WORKSPACE=/workspace

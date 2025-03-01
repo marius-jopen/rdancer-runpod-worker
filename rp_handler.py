@@ -305,6 +305,33 @@ if SAVE_TO_S3:
     assert AWS_SECRET_ACCESS_KEY is not None, "AWS_SECRET_ACCESS_KEY must be set"
     assert AWS_S3_BUCKET is not None, "AWS_S3_BUCKET must be set"
 
+    # Get the S3 client that RunPod SDK is using
+    s3_client = rp_upload.get_boto_client(AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+    
+    # Save original functions
+    original_upload_file_to_bucket = rp_upload.upload_file_to_bucket
+    
+    def patched_upload_file_to_bucket(*args, **kwargs):
+        """Add public-read ACL to all uploads and return public URL"""
+        if 'extra_args' in kwargs:
+            kwargs['extra_args']['ACL'] = 'public-read'
+        else:
+            kwargs['extra_args'] = {'ACL': 'public-read'}
+            
+        # Upload file
+        original_upload_file_to_bucket(*args, **kwargs)
+        
+        # Return public URL instead of presigned URL
+        bucket = kwargs.get('bucket_name')
+        prefix = kwargs.get('prefix', '')
+        filename = kwargs.get('file_name')
+        key = f"{prefix}/{filename}" if prefix else filename
+        return f"https://{bucket}.s3.{AWS_REGION}.amazonaws.com/{key}"
+    
+    # Apply the patch
+    rp_upload.upload_file_to_bucket = patched_upload_file_to_bucket
+    print("Monkey patched RunPod SDK's upload_file_to_bucket to make objects public and return non-expiring URLs")
+
 def construct_output_path_stub(deforum_status_json):
     """
     Construct the output path stub for the Deform job based on the status JSON.

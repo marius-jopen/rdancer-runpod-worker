@@ -1,8 +1,8 @@
-version: '0.1.0'
+version: '0.1.4'
 
 services:
   mj-comfyui-worker:
-    image: mariusjopen/runpod-worker-comfyui:0.1.0
+    image: mariusjopen/runpod-worker-comfyui:0.1.4
     platform: linux/amd64
     build:
       context: .
@@ -21,7 +21,7 @@ services:
       - "22:22"        # SSH port
 
   mj-deforum-worker:
-    image: mariusjopen/runpod-worker-deforum:0.1.0
+    image: mariusjopen/runpod-worker-deforum:0.1.4
     platform: linux/amd64
     build:
       context: .
@@ -40,7 +40,7 @@ services:
     restart: always
 
   mj-a1111-worker:
-    image: mariusjopen/runpod-worker-a1111:0.1.0
+    image: mariusjopen/runpod-worker-a1111:0.1.4
     platform: linux/amd64
     build:
       context: .

@@ -40,75 +40,20 @@ setup_custom_nodes() {
         echo "Found custom nodes:"
         ls -1 /workspace/ComfyUI/custom_nodes/
         
-        # Use system Python/pip directly (not virtual environment)
-        echo "Installing essential dependencies for custom nodes..."
+        # Use system Python/pip directly - just upgrade pip
+        echo "Upgrading pip for dependency installation..."
         python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
         
-        # Install common missing dependencies that custom nodes often need
-        echo "Installing comprehensive dependencies for custom nodes..."
+        # Install only the specific packages that failed in the logs
+        echo "Installing packages that commonly fail..."
         python3 -m pip install --no-cache-dir \
+            opencv-python \
+            deepdiff \
             google-generativeai \
             ollama \
-            opencv-python \
-            opencv-contrib-python \
-            mediapipe \
-            insightface \
-            onnxruntime \
-            onnxruntime-gpu \
-            segment-anything \
-            groundingdino-py \
-            sam2 \
-            ultralytics \
-            controlnet-aux \
-            facexlib \
-            gfpgan \
-            realesrgan \
-            basicsr \
-            scipy \
-            scikit-image \
-            albumentations \
-            transformers \
-            diffusers \
-            accelerate \
-            xformers \
-            triton \
-            kornia \
-            timm \
-            open-clip-torch \
-            clip-by-openai \
-            ftfy \
-            regex \
-            tqdm \
-            requests \
-            pillow \
-            numpy \
-            matplotlib \
-            seaborn \
-            plotly \
-            gradio \
-            streamlit \
-            fastapi \
-            uvicorn \
-            websockets \
-            aiohttp \
-            httpx \
-            beautifulsoup4 \
-            lxml \
-            jsonschema \
-            pyyaml \
-            toml \
-            configparser \
-            python-dotenv \
-            psutil \
-            gpustat \
-            pynvml \
-            wandb \
-            tensorboard \
-            mlflow \
-            deepdiff \
-        || echo "Some essential dependencies failed to install"
+        || echo "Some common packages failed to install"
         
-        # Install requirements for each custom node
+        # Install requirements for each custom node (let them specify what they need)
         echo "Installing custom node specific dependencies..."
         for node_dir in /workspace/ComfyUI/custom_nodes/*/; do
             if [ -d "$node_dir" ]; then
@@ -138,25 +83,6 @@ setup_custom_nodes() {
                 fi
             fi
         done
-        
-        # Install specific packages for known problematic nodes
-        echo "Installing specific fixes for common custom nodes..."
-        
-        # Fix for ComfyUI-Crystools
-        python3 -m pip install --no-cache-dir crystools || echo "Failed to install crystools"
-        
-        # Fix for Impact Pack
-        python3 -m pip install --no-cache-dir segment-anything-hq || echo "Failed to install segment-anything-hq"
-        
-        # Fix for Advanced ControlNet
-        python3 -m pip install --no-cache-dir controlnet-aux || echo "Failed to install controlnet-aux"
-        
-        # Fix for various nodes requiring specific versions
-        python3 -m pip install --no-cache-dir \
-            "numpy>=1.21.0" \
-            "opencv-python>=4.5.0" \
-            "pillow>=8.0.0" \
-        || echo "Failed to install specific version requirements"
         
         echo "Custom node dependency installation complete!"
         

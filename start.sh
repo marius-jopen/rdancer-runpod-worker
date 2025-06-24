@@ -40,17 +40,13 @@ setup_custom_nodes() {
         echo "Found custom nodes:"
         ls -1 /workspace/ComfyUI/custom_nodes/
         
-        # Activate virtual environment first
-        cd /workspace/ComfyUI
-        . /workspace/ComfyUI/venv/bin/activate
-        
-        # Install essential dependencies first (these are commonly needed)
+        # Use system Python/pip directly (not virtual environment)
         echo "Installing essential dependencies for custom nodes..."
-        pip install --no-cache-dir --upgrade pip setuptools wheel
+        python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
         
         # Install common missing dependencies that custom nodes often need
         echo "Installing comprehensive dependencies for custom nodes..."
-        pip install --no-cache-dir \
+        python3 -m pip install --no-cache-dir \
             google-generativeai \
             ollama \
             opencv-python \
@@ -109,6 +105,7 @@ setup_custom_nodes() {
             wandb \
             tensorboard \
             mlflow \
+            deepdiff \
         || echo "Some essential dependencies failed to install"
         
         # Install requirements for each custom node
@@ -121,14 +118,14 @@ setup_custom_nodes() {
                 # Check for requirements.txt
                 if [ -f "$node_dir/requirements.txt" ]; then
                     echo "Installing requirements.txt for $node_name..."
-                    pip install -r "$node_dir/requirements.txt" --no-cache-dir || echo "Failed to install some requirements for $node_name"
+                    python3 -m pip install -r "$node_dir/requirements.txt" --no-cache-dir || echo "Failed to install some requirements for $node_name"
                 fi
                 
                 # Check for install.py
                 if [ -f "$node_dir/install.py" ]; then
                     echo "Running install.py for $node_name..."
                     cd "$node_dir"
-                    python install.py || echo "Failed to run install.py for $node_name"
+                    python3 install.py || echo "Failed to run install.py for $node_name"
                     cd /workspace/ComfyUI
                 fi
                 
@@ -136,7 +133,7 @@ setup_custom_nodes() {
                 if [ -f "$node_dir/pyproject.toml" ]; then
                     echo "Installing pyproject.toml for $node_name..."
                     cd "$node_dir"
-                    pip install -e . --no-cache-dir || echo "Failed to install pyproject.toml for $node_name"
+                    python3 -m pip install -e . --no-cache-dir || echo "Failed to install pyproject.toml for $node_name"
                     cd /workspace/ComfyUI
                 fi
             fi
@@ -146,16 +143,16 @@ setup_custom_nodes() {
         echo "Installing specific fixes for common custom nodes..."
         
         # Fix for ComfyUI-Crystools
-        pip install --no-cache-dir crystools || echo "Failed to install crystools"
+        python3 -m pip install --no-cache-dir crystools || echo "Failed to install crystools"
         
         # Fix for Impact Pack
-        pip install --no-cache-dir segment-anything-hq || echo "Failed to install segment-anything-hq"
+        python3 -m pip install --no-cache-dir segment-anything-hq || echo "Failed to install segment-anything-hq"
         
         # Fix for Advanced ControlNet
-        pip install --no-cache-dir controlnet-aux || echo "Failed to install controlnet-aux"
+        python3 -m pip install --no-cache-dir controlnet-aux || echo "Failed to install controlnet-aux"
         
         # Fix for various nodes requiring specific versions
-        pip install --no-cache-dir \
+        python3 -m pip install --no-cache-dir \
             "numpy>=1.21.0" \
             "opencv-python>=4.5.0" \
             "pillow>=8.0.0" \

@@ -35,10 +35,54 @@ setup_custom_nodes() {
     echo "Custom nodes folder contents:"
     ls -la /workspace/ComfyUI/custom_nodes/
     
-    # If there are custom nodes, list them
+    # If there are custom nodes, list them and install requirements
     if [ "$(ls -A /workspace/ComfyUI/custom_nodes/)" ]; then
         echo "Found custom nodes:"
         ls -1 /workspace/ComfyUI/custom_nodes/
+        
+        # Install requirements for each custom node
+        echo "Installing custom node dependencies..."
+        for node_dir in /workspace/ComfyUI/custom_nodes/*/; do
+            if [ -d "$node_dir" ]; then
+                node_name=$(basename "$node_dir")
+                echo "Checking dependencies for: $node_name"
+                
+                # Check for requirements.txt
+                if [ -f "$node_dir/requirements.txt" ]; then
+                    echo "Installing requirements for $node_name..."
+                    cd /workspace/ComfyUI
+                    . /workspace/ComfyUI/venv/bin/activate
+                    pip install -r "$node_dir/requirements.txt" --no-cache-dir || echo "Failed to install some requirements for $node_name"
+                fi
+                
+                # Check for install.py
+                if [ -f "$node_dir/install.py" ]; then
+                    echo "Running install.py for $node_name..."
+                    cd "$node_dir"
+                    . /workspace/ComfyUI/venv/bin/activate
+                    python install.py || echo "Failed to run install.py for $node_name"
+                fi
+            fi
+        done
+        
+        # Install common missing dependencies that custom nodes often need
+        echo "Installing common dependencies for custom nodes..."
+        cd /workspace/ComfyUI
+        . /workspace/ComfyUI/venv/bin/activate
+        pip install --no-cache-dir \
+            google-generativeai \
+            ollama \
+            opencv-python \
+            opencv-contrib-python \
+            mediapipe \
+            insightface \
+            onnxruntime \
+            segment-anything \
+            groundingdino-py \
+            sam2 \
+            ultralytics \
+        || echo "Some common dependencies failed to install"
+        
     else
         echo "No custom nodes found in /workspace/ComfyUI/custom_nodes/"
     fi

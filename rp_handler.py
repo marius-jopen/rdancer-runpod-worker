@@ -248,11 +248,15 @@ def process_output_images(outputs, job_id):
         # The image is in the output folder
         if os.path.exists(local_image_path):
             base_name = os.path.basename(local_image_path)
-            if os.environ.get("BUCKET_ENDPOINT_URL", False):
+            if os.environ.get("SAVE_TO_S3", "false").lower() == "true":
                 # URL to image in AWS S3
-                image = rp_upload.upload_image(job_id, local_image_path)
+                image_url = rp_upload.upload_image(job_id, local_image_path)
+                encoded_output_images.append({
+                    "name": base_name,
+                    "image": image_url
+                })
                 print(
-                    f"runpod-worker-comfy - the image {base_name} was generated and uploaded to AWS S3"
+                    f"runpod-worker-comfy - the image {base_name} was generated and uploaded to AWS S3: {image_url}"
                 )
             else:
                 # base64 image

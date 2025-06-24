@@ -248,7 +248,7 @@ def process_output_images(outputs, job_id):
         # The image is in the output folder
         if os.path.exists(local_image_path):
             base_name = os.path.basename(local_image_path)
-            if os.environ.get("BUCKET_ENDPOINT_URL", False):
+            if os.environ.get("AWS_S3_BUCKET", False):
                 # URL to image in AWS S3
                 image_url = rp_upload.upload_image(job_id, local_image_path)
                 encoded_output_images.append({

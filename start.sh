@@ -40,35 +40,16 @@ setup_custom_nodes() {
         echo "Found custom nodes:"
         ls -1 /workspace/ComfyUI/custom_nodes/
         
-        # Install requirements for each custom node
-        echo "Installing custom node dependencies..."
-        for node_dir in /workspace/ComfyUI/custom_nodes/*/; do
-            if [ -d "$node_dir" ]; then
-                node_name=$(basename "$node_dir")
-                echo "Checking dependencies for: $node_name"
-                
-                # Check for requirements.txt
-                if [ -f "$node_dir/requirements.txt" ]; then
-                    echo "Installing requirements for $node_name..."
-                    cd /workspace/ComfyUI
-                    . /workspace/ComfyUI/venv/bin/activate
-                    pip install -r "$node_dir/requirements.txt" --no-cache-dir || echo "Failed to install some requirements for $node_name"
-                fi
-                
-                # Check for install.py
-                if [ -f "$node_dir/install.py" ]; then
-                    echo "Running install.py for $node_name..."
-                    cd "$node_dir"
-                    . /workspace/ComfyUI/venv/bin/activate
-                    python install.py || echo "Failed to run install.py for $node_name"
-                fi
-            fi
-        done
-        
-        # Install common missing dependencies that custom nodes often need
-        echo "Installing common dependencies for custom nodes..."
+        # Activate virtual environment first
         cd /workspace/ComfyUI
         . /workspace/ComfyUI/venv/bin/activate
+        
+        # Install essential dependencies first (these are commonly needed)
+        echo "Installing essential dependencies for custom nodes..."
+        pip install --no-cache-dir --upgrade pip setuptools wheel
+        
+        # Install common missing dependencies that custom nodes often need
+        echo "Installing comprehensive dependencies for custom nodes..."
         pip install --no-cache-dir \
             google-generativeai \
             ollama \
@@ -77,11 +58,110 @@ setup_custom_nodes() {
             mediapipe \
             insightface \
             onnxruntime \
+            onnxruntime-gpu \
             segment-anything \
             groundingdino-py \
             sam2 \
             ultralytics \
-        || echo "Some common dependencies failed to install"
+            controlnet-aux \
+            facexlib \
+            gfpgan \
+            realesrgan \
+            basicsr \
+            scipy \
+            scikit-image \
+            albumentations \
+            transformers \
+            diffusers \
+            accelerate \
+            xformers \
+            triton \
+            kornia \
+            timm \
+            open-clip-torch \
+            clip-by-openai \
+            ftfy \
+            regex \
+            tqdm \
+            requests \
+            pillow \
+            numpy \
+            matplotlib \
+            seaborn \
+            plotly \
+            gradio \
+            streamlit \
+            fastapi \
+            uvicorn \
+            websockets \
+            aiohttp \
+            httpx \
+            beautifulsoup4 \
+            lxml \
+            jsonschema \
+            pyyaml \
+            toml \
+            configparser \
+            python-dotenv \
+            psutil \
+            gpustat \
+            pynvml \
+            wandb \
+            tensorboard \
+            mlflow \
+        || echo "Some essential dependencies failed to install"
+        
+        # Install requirements for each custom node
+        echo "Installing custom node specific dependencies..."
+        for node_dir in /workspace/ComfyUI/custom_nodes/*/; do
+            if [ -d "$node_dir" ]; then
+                node_name=$(basename "$node_dir")
+                echo "Checking dependencies for: $node_name"
+                
+                # Check for requirements.txt
+                if [ -f "$node_dir/requirements.txt" ]; then
+                    echo "Installing requirements.txt for $node_name..."
+                    pip install -r "$node_dir/requirements.txt" --no-cache-dir || echo "Failed to install some requirements for $node_name"
+                fi
+                
+                # Check for install.py
+                if [ -f "$node_dir/install.py" ]; then
+                    echo "Running install.py for $node_name..."
+                    cd "$node_dir"
+                    python install.py || echo "Failed to run install.py for $node_name"
+                    cd /workspace/ComfyUI
+                fi
+                
+                # Check for pyproject.toml
+                if [ -f "$node_dir/pyproject.toml" ]; then
+                    echo "Installing pyproject.toml for $node_name..."
+                    cd "$node_dir"
+                    pip install -e . --no-cache-dir || echo "Failed to install pyproject.toml for $node_name"
+                    cd /workspace/ComfyUI
+                fi
+            fi
+        done
+        
+        # Install specific packages for known problematic nodes
+        echo "Installing specific fixes for common custom nodes..."
+        
+        # Fix for ComfyUI-Crystools
+        pip install --no-cache-dir crystools || echo "Failed to install crystools"
+        
+        # Fix for Impact Pack
+        pip install --no-cache-dir segment-anything-hq || echo "Failed to install segment-anything-hq"
+        
+        # Fix for Advanced ControlNet
+        pip install --no-cache-dir controlnet-aux || echo "Failed to install controlnet-aux"
+        
+        # Fix for various nodes requiring specific versions
+        pip install --no-cache-dir \
+            "numpy>=1.21.0" \
+            "opencv-python>=4.5.0" \
+            "pillow>=8.0.0" \
+        || echo "Failed to install specific version requirements"
+        
+        echo "Custom node dependency installation complete!"
         
     else
         echo "No custom nodes found in /workspace/ComfyUI/custom_nodes/"

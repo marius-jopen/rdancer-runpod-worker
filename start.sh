@@ -15,19 +15,51 @@ ensure_network_volume_mounted() {
 }
 ensure_network_volume_mounted
 
+# Ensure custom_nodes are available and linked properly
+setup_custom_nodes() {
+    echo "Setting up custom_nodes..."
+    
+    # Ensure the custom_nodes folder exists in workspace
+    if [ ! -d "/workspace/ComfyUI/custom_nodes" ]; then
+        echo "Creating custom_nodes folder..."
+        mkdir -p /workspace/ComfyUI/custom_nodes
+    fi
+    
+    # For API mode, ensure custom_nodes are available in /comfyui/
+    if [ ! -L "/comfyui/custom_nodes" ] && [ ! -d "/comfyui/custom_nodes" ]; then
+        echo "Linking custom_nodes to /comfyui/ for API mode..."
+        ln -sf /workspace/ComfyUI/custom_nodes /comfyui/custom_nodes
+    fi
+    
+    # Debug: Show what's in custom_nodes
+    echo "Custom nodes folder contents:"
+    ls -la /workspace/ComfyUI/custom_nodes/
+    
+    # If there are custom nodes, list them
+    if [ "$(ls -A /workspace/ComfyUI/custom_nodes/)" ]; then
+        echo "Found custom nodes:"
+        ls -1 /workspace/ComfyUI/custom_nodes/
+    else
+        echo "No custom nodes found in /workspace/ComfyUI/custom_nodes/"
+    fi
+}
+setup_custom_nodes
+
 # Use libtcmalloc for better memory management
 TCMALLOC="$(ldconfig -p | grep -Po "libtcmalloc.so.\d" | head -n 1)"
 export LD_PRELOAD="${TCMALLOC}"
 
 # Serve the API and don't shutdown the container
 if [ "$SERVE_API_LOCALLY" == "true" ]; then
-    echo "runpod-worker-comfy: Starting ComfyUI"
+    echo "runpod-worker-comfy: Starting ComfyUI in API mode"
+    echo "Custom nodes will be loaded from: /comfyui/custom_nodes -> /workspace/ComfyUI/custom_nodes"
     python3 /comfyui/main.py --disable-auto-launch --disable-metadata --listen &
 
     echo "runpod-worker-comfy: Starting RunPod Handler"
     python3 -u /rp_handler.py --rp_serve_api --rp_api_host=0.0.0.0
 else
-    echo "runpod-worker-comfy: Starting ComfyUI"
+    echo "runpod-worker-comfy: Starting ComfyUI in normal mode"
+    echo "Custom nodes will be loaded from: /workspace/ComfyUI/custom_nodes"
     (
         cd /workspace/ComfyUI
         . /workspace/ComfyUI/venv/bin/activate
